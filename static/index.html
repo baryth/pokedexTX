@@ -166,9 +166,74 @@
     .msg.err { color: #c00; }
 
     .empty { padding: 1.75rem; text-align: center; color: #ccc; font-size: .88rem; }
+
+    /* Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.35);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: #fff;
+      border-radius: 10px;
+      padding: 1.5rem;
+      width: 100%;
+      max-width: 340px;
+      box-shadow: 0 4px 20px rgba(0,0,0,.15);
+    }
+
+    .modal h3 { font-size: 1rem; margin-bottom: .4rem; }
+    .modal p { font-size: .88rem; color: #666; margin-bottom: 1.25rem; }
+
+    .modal-actions { display: flex; gap: .6rem; justify-content: flex-end; }
+
+    .btn-ghost {
+      padding: .42rem 1rem;
+      background: none;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: .88rem;
+      color: #555;
+      transition: border-color .15s;
+    }
+
+    .btn-ghost:hover { border-color: #aaa; }
+
+    .btn-danger {
+      padding: .42rem 1rem;
+      background: #cc0000;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: .88rem;
+      font-weight: 600;
+      transition: background .15s;
+    }
+
+    .btn-danger:hover { background: #a80000; }
   </style>
 </head>
 <body>
+
+<div class="modal-overlay" id="confirm-modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <h3>Remove Trainer</h3>
+    <p id="confirm-text">Are you sure you want to remove this trainer?</p>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn-danger" id="confirm-btn">Remove</button>
+    </div>
+  </div>
+</div>
 
 <header>
   <svg width="26" height="26" viewBox="0 0 100 100">
@@ -327,16 +392,26 @@
         <tr>
           <td><strong>${t.name}</strong></td>
           <td>${t.city ?? '<span style="color:#ccc">—</span>'}</td>
-          <td style="text-align:right"><button class="del-btn" onclick="deleteTrainer(${t.id})">Remove</button></td>
+          <td style="text-align:right"><button class="del-btn" onclick="deleteTrainer(${t.id}, '${t.name.replace(/'/g, "\\'")}')">Remove</button></td>
         </tr>`).join('');
     } catch {
       tbody.innerHTML = '<tr><td colspan="3" class="empty">Failed to load trainers.</td></tr>';
     }
   }
 
-  async function deleteTrainer(id) {
-    await fetch(`/trainers/${id}`, { method: 'DELETE' });
-    loadTrainers();
+  function closeModal() {
+    document.getElementById('confirm-modal').classList.remove('open');
+  }
+
+  function deleteTrainer(id, name) {
+    document.getElementById('confirm-text').textContent = `Are you sure you want to remove "${name}"?`;
+    const modal = document.getElementById('confirm-modal');
+    modal.classList.add('open');
+    document.getElementById('confirm-btn').onclick = async () => {
+      closeModal();
+      await fetch(`/trainers/${id}`, { method: 'DELETE' });
+      loadTrainers();
+    };
   }
 
   async function createTrainer(e) {
