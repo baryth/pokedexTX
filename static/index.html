@@ -148,6 +148,19 @@
 
     .btn:hover { background: #a80000; }
 
+    .del-btn {
+      padding: .25rem .65rem;
+      background: none;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: .78rem;
+      color: #999;
+      cursor: pointer;
+      transition: border-color .15s, color .15s;
+    }
+
+    .del-btn:hover { border-color: #cc0000; color: #cc0000; }
+
     .msg { font-size: .8rem; margin-top: .5rem; min-height: 1rem; }
     .msg.ok { color: #2a7d2a; }
     .msg.err { color: #c00; }
@@ -225,10 +238,11 @@
           <tr>
             <th>Name</th>
             <th>City</th>
+            <th></th>
           </tr>
         </thead>
         <tbody id="trainer-list">
-          <tr><td colspan="2" class="empty">Loading…</td></tr>
+          <tr><td colspan="3" class="empty">Loading…</td></tr>
         </tbody>
       </table>
     </div>
@@ -306,17 +320,23 @@
       const data = await fetch('/trainers').then(r => r.json());
       setNextId(data);
       if (!data.length) {
-        tbody.innerHTML = '<tr><td colspan="2" class="empty">No trainers yet.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="3" class="empty">No trainers yet.</td></tr>';
         return;
       }
       tbody.innerHTML = data.map(t => `
         <tr>
           <td><strong>${t.name}</strong></td>
           <td>${t.city ?? '<span style="color:#ccc">—</span>'}</td>
+          <td style="text-align:right"><button class="del-btn" onclick="deleteTrainer(${t.id})">Remove</button></td>
         </tr>`).join('');
     } catch {
-      tbody.innerHTML = '<tr><td colspan="2" class="empty">Failed to load trainers.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="3" class="empty">Failed to load trainers.</td></tr>';
     }
+  }
+
+  async function deleteTrainer(id) {
+    await fetch(`/trainers/${id}`, { method: 'DELETE' });
+    loadTrainers();
   }
 
   async function createTrainer(e) {
