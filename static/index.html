@@ -298,11 +298,17 @@
     }
   }
 
+  function setNextId(data) {
+    const nextId = data.length ? Math.max(...data.map(t => t.id)) + 1 : 1;
+    document.getElementById('t-id').value = nextId;
+  }
+
   async function loadTrainers() {
     const tbody = document.getElementById('trainer-list');
     tbody.innerHTML = '<tr><td colspan="3" class="empty">Loading…</td></tr>';
     try {
       const data = await fetch('/trainers').then(r => r.json());
+      setNextId(data);
       if (!data.length) {
         tbody.innerHTML = '<tr><td colspan="3" class="empty">No trainers yet.</td></tr>';
         return;
